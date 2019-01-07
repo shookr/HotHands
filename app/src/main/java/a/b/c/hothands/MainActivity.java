@@ -41,19 +41,26 @@ public class MainActivity extends AppCompatActivity {
     ThreadConnected myThreadConnected;
     private UUID myUUID;
     private SeekBar seekbar;
+    private TextView lblTemp;
+    private TextView lblBattery;
+    private TextView lblLevel;
+    private TextView lblStatus;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        lblTemp = findViewById(R.id.lblTemp);
+        lblBattery = findViewById(R.id.lblBattery);
+        lblLevel = findViewById(R.id.lblLevel);
+        lblStatus = findViewById(R.id.lblStatus);
         seekbar = findViewById(R.id.seekbar);
+
         seekbar.setOnSeekBarChangeListener(new SeekListener());
 
         if (!getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH)) {
-            Toast.makeText(this,
-                    "FEATURE_BLUETOOTH NOT support",
-                    Toast.LENGTH_LONG).show();
+            toast("FEATURE_BLUETOOTH NOT support");
             finish();
             return;
         }
@@ -63,9 +70,7 @@ public class MainActivity extends AppCompatActivity {
 
         bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
         if (bluetoothAdapter == null) {
-            Toast.makeText(this,
-                    "Bluetooth is not supported on this hardware platform",
-                    Toast.LENGTH_LONG).show();
+            toast("Bluetooth is not supported on this hardware platform");
             finish();
             return;
         }
@@ -93,13 +98,11 @@ public class MainActivity extends AppCompatActivity {
             }
         }
         //BluetoothDevice device = (BluetoothDevice) pairedDevices.stream().filter(d -> d.getAddress().equals(TARGET_MAC)).get;
-        Toast.makeText(MainActivity.this,
-                "Name: " + device.getName() + "\n"
+        toast("Name: " + device.getName() + "\n"
                         + "Address: " + device.getAddress() + "\n"
                         + "BondState: " + device.getBondState() + "\n"
                         + "BluetoothClass: " + device.getBluetoothClass() + "\n"
-                        + "Class: " + device.getClass(),
-                Toast.LENGTH_LONG).show();
+                        + "Class: " + device.getClass());
 
         myThreadConnectBTdevice = new ThreadConnectBTdevice(device);
         myThreadConnectBTdevice.start();
@@ -112,7 +115,11 @@ public class MainActivity extends AppCompatActivity {
         myThreadConnected.start();
     }
 
-    class SeekListener implements SeekBar.OnSeekBarChangeListener {
+    private void toast(String text) {
+        Toast.makeText(MainActivity.this, text, Toast.LENGTH_LONG).show();
+    }
+
+    private class SeekListener implements SeekBar.OnSeekBarChangeListener {
         int progressChanged = 0;
 
         public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser){
@@ -126,6 +133,9 @@ public class MainActivity extends AppCompatActivity {
             if (myThreadConnected != null) {
                 byte[] bytesToSend = String.valueOf(progressChanged).getBytes();
                 myThreadConnected.write(bytesToSend);
+                lblLevel.setText(progressChanged + " / 5");
+            } else {
+                toast("NO CONNECTION");
             }
         }
     }
@@ -159,7 +169,6 @@ public class MainActivity extends AppCompatActivity {
                 try {
                     bluetoothSocket.close();
                 } catch (IOException e1) {
-                    // TODO Auto-generated catch block
                     e1.printStackTrace();
                 }
             }
@@ -177,18 +186,14 @@ public class MainActivity extends AppCompatActivity {
         }
 
         public void cancel() {
-            Toast.makeText(getApplicationContext(),
-                    "close bluetoothSocket",
-                    Toast.LENGTH_LONG).show();
+            toast("CLOSE BLUETOOTHSOCKET");
             try {
                 bluetoothSocket.close();
             } catch (IOException e) {
-                // TODO Auto-generated catch block
                 e.printStackTrace();
             }
         }
     }
-
 
     /*
     ThreadConnected:
@@ -209,7 +214,6 @@ public class MainActivity extends AppCompatActivity {
                 in = socket.getInputStream();
                 out = socket.getOutputStream();
             } catch (IOException e) {
-                // TODO Auto-generated catch block
                 e.printStackTrace();
             }
 
