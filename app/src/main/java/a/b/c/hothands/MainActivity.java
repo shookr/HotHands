@@ -154,17 +154,27 @@ public class MainActivity extends AppCompatActivity {
                     String readMessage = null;
                     try {
                         readMessage = new String((byte[]) msg.obj, "UTF-8");
-                        char type = readMessage.charAt(0);
-                        String value = readMessage.replaceAll("\\D+", "");
+                        if (readMessage.length() <= 1 ) {
+                            return;
+                        }
+                        String msgLetters = readMessage.replaceAll("[0-9]+", "");
+                        char type = msgLetters.charAt(0);
+                        if (type == '\u0000') {
+                            return;
+                        }
+                        int start = readMessage.indexOf(type);
+                        int end = readMessage.substring(start+1).indexOf(type);
+                        String msgShort = readMessage.substring(start+1, end+1);
+                        String msgDigits = msgShort.replaceAll("\\D+", "");
                         switch (type) {
                             case 'T':
-                                mTextViewTemperature.setText(value + " °C");
+                                mTextViewTemperature.setText(msgDigits + " °C");
                                 break;
                             case 'B':
-                                mTextViewBattery.setText(value + " %");
+                                mTextViewBattery.setText(msgDigits + " %");
                                 break;
                             case 'L':
-                                mSeekBarLevel.setProgress(Integer.valueOf(value));
+                                mSeekBarLevel.setProgress(Integer.valueOf(msgDigits));
                                 break;
                             default:
                         }
